@@ -48,7 +48,7 @@ func assertEqual(t *testing.T, got, want interface{}) {
 func assertError(t *testing.T, got, want error) {
     t.Helper()
     if got != want {
-        t.Errorf("got error '%s', want '%s'", got, want)
+        t.Errorf("got error %q, want %q", got, want)
     }
 }
 
@@ -180,4 +180,22 @@ func TestGetAppointments(t *testing.T) {
 
     got, _ := client.GetAppointmentSlots(token)
     assertEqual(t, got, want)
+}
+
+func TestGetPatientId(t *testing.T) {
+    setup()
+    defer teardown()
+
+    token := "28d5cf150df203a0002f48395e380dff"
+
+    mux.HandleFunc("/api/Account/patients", func(w http.ResponseWriter, r *http.Request) {
+        assertHttpMethod(t, r.Method, "GET")
+        assertStrings(t, r.Header.Get("Authorization"), fmt.Sprintf("Bearer %s", token))
+        fmt.Fprint(w, `{"selfPatientId":"15d0b1d1-d046-46f6-ae46-7814782fd536"}`)
+    })
+
+    want := "15d0b1d1-d046-46f6-ae46-7814782fd536"
+
+    got, _ := client.GetPatientId(token)
+    assertStrings(t, got, want)
 }

@@ -71,6 +71,10 @@ type AppointmentSlotResponse struct {
     Slots []AppointmentSlot
 }
 
+type PatientResponse struct {
+    PatientId string `json:"selfPatientId"`
+}
+
 // Returns a new Patient Access API client
 func NewClient() *Client {
     baseURL, _ := url.Parse(defaultBaseURL)
@@ -104,7 +108,7 @@ func (c *Client) NewRequest(method, apiPath string, body interface{}) (*http.Req
 }
 
 // Obtains a new PA API access token
-func (c *Client) GetToken(username, password string) (token *AccessToken, err error) {
+func (c *Client) GetToken(username, password string) (*AccessToken, error) {
     form := map[string]string{
         "username": username,
         "password": password,
@@ -137,7 +141,7 @@ func (c *Client) GetToken(username, password string) (token *AccessToken, err er
     return &authResp.AccessToken, nil
 }
 
-func (c *Client) GetAppointmentSlots(token string) (slots []AppointmentSlot, err error) {
+func (c *Client) GetAppointmentSlots(token string) ([]AppointmentSlot, error) {
     req, err := c.NewRequest("GET", "/Appointment/properties/hierarchy", nil)
     if err != nil {
         return nil, err
@@ -161,6 +165,32 @@ func (c *Client) GetAppointmentSlots(token string) (slots []AppointmentSlot, err
     }
     
     return slotResp.Slots, nil
+}
+
+func (c *Client) GetPatientId(token string) (string, error) {
+    req, err := c.NewRequest("GET", "/Account/patients", nil)
+    if err != nil {
+        return "", err
+    }
+
+    req.Header.Add("Authorization", "Bearer " + token)
+
+    resp, err := c.client.Do(req)
+    if err != nil {
+        return "", err
+    }
+
+    if resp.StatusCode < 200 || resp.StatusCode > 299 {
+        return "", ErrBadStatusCode
+    }
+
+    var patientResp PatientResponse
+    err = json.NewDecoder(resp.Body).Decode(&patientResp)
+    if err != nil {
+        return "", err
+    }
+    
+    return patientResp.PatientId, nil
 }
 
 func joinPaths(baseURL *url.URL, path string) (*url.URL, error) {
