@@ -37,6 +37,13 @@ func assertHttpMethod(t *testing.T, got, want string) {
     }
 }
 
+func assertEquals(t *testing.T, got, want interface{}) {
+    t.Helper()
+    if !reflect.Deepinterface{}Equal(got, want) {
+        t.Errorf("got %+v, want %+v", got, want)
+    }
+}
+
 func TestAccessTokenExpiresIn(t *testing.T) {
     tokenExpiresIn := time.Now().Add(time.Minute * 5).Format("2006-01-02T15:04:05.999999Z")
     jsonBlob := fmt.Sprintf(`{"access_token": "28d5cf150df203a0002f48395e380dff", "expires_in": "%s"}`, tokenExpiresIn)
@@ -52,9 +59,7 @@ func TestAccessTokenExpiresIn(t *testing.T) {
         t.Errorf("Token unmarshaling error: %v", err)
     }
 
-    if !reflect.DeepEqual(got, want) {
-        t.Errorf("got %+v, want %+v", got, want)
-    }
+    assertEquals(t, got, want)
 }
 
 func TestGetToken(t *testing.T) {
@@ -76,9 +81,7 @@ func TestGetToken(t *testing.T) {
 
     got, _ := client.GetToken("roman", "sikr3t")
 
-    if !reflect.DeepEqual(got, want) {
-        t.Errorf("got %+v, want %+v", got, want)
-    }
+    assertEquals(t, got, want)
 }
 
 func TestGetTokenBadCredentials(t *testing.T) {
