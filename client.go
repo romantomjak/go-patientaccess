@@ -2,6 +2,7 @@ package patientaccess
 
 import (
     "encoding/json"
+    "errors"
     "net/http"
     "net/url"
     "time"
@@ -10,6 +11,10 @@ import (
 const (
     defaultBaseURL = "https://api.patientaccess.com/api"
     userAgent = "go-patientaccess/0.1 (+https://github.com/romantomjak/go-patientaccess)"
+)
+
+var (
+    ErrBadCredentials = errors.New("bad credentials")
 )
 
 // Client manages communication with Patient Access API
@@ -92,6 +97,10 @@ func (c *Client) GetToken(username, password string) (token *AccessToken, err er
     err = json.NewDecoder(resp.Body).Decode(&authResp)
     if err != nil {
         return nil, err
+    }
+
+    if (authResp.AccessToken.Token == "") {
+        return nil, ErrBadCredentials
     }
     
     return &authResp.AccessToken, nil

@@ -30,7 +30,7 @@ func teardown() {
     server.Close()
 }
 
-func TestAccessTokenUmarshaling(t *testing.T) {
+func TestAccessTokenExpiresIn(t *testing.T) {
     tokenExpiresIn := time.Now().Add(time.Minute * 5).Format("2006-01-02T15:04:05.999999Z")
     jsonBlob := fmt.Sprintf(`{"access_token": "28d5cf150df203a0002f48395e380dff", "expires_in": "%s"}`, tokenExpiresIn)
 
@@ -70,5 +70,20 @@ func TestGetToken(t *testing.T) {
 
     if !reflect.DeepEqual(got, want) {
         t.Errorf("got %+v, want %+v", got, want)
+    }
+}
+
+func TestGetTokenBadCredentials(t *testing.T) {
+    setup()
+    defer teardown()
+
+    mux.HandleFunc("/authorization/signin", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprint(w, `{"accessToken": null}"`)
+    })
+
+    want := ErrBadCredentials
+    _, got := client.GetToken("roman", "sikr3t")
+    if got != want {
+        t.Errorf("got '%+v', want '%+v'", got, want)
     }
 }
