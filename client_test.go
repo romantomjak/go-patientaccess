@@ -23,6 +23,7 @@ func setup() {
 
     client = NewClient()
     url, _ := url.Parse(server.URL)
+    url.Path = url.Path + "/api"
     client.BaseURL = url
 }
 
@@ -48,6 +49,13 @@ func assertError(t *testing.T, got, want error) {
     t.Helper()
     if got != want {
         t.Errorf("got error '%s', want '%s'", got, want)
+    }
+}
+
+func assertStrings(t *testing.T, got, want string) {
+    t.Helper()
+    if got != want {
+        t.Errorf("got %q, want %q", got, want)
     }
 }
 
@@ -79,7 +87,7 @@ func TestGetToken(t *testing.T) {
     tokenExpiresIn := time.Now().Add(time.Minute * 5).Format("2006-01-02T15:04:05.999999Z")
     jsonBlob := fmt.Sprintf(`{"accessToken": {"access_token": "28d5cf150df203a0002f48395e380dff", "expires_in": "%s"}}`, tokenExpiresIn)
 
-    mux.HandleFunc("/authorization/signin", func(w http.ResponseWriter, r *http.Request) {
+    mux.HandleFunc("/api/authorization/signin", func(w http.ResponseWriter, r *http.Request) {
         assertHttpMethod(t, r.Method, "POST")
 
         want := map[string]string{
@@ -108,7 +116,7 @@ func TestGetTokenBadCredentials(t *testing.T) {
     setup()
     defer teardown()
 
-    mux.HandleFunc("/authorization/signin", func(w http.ResponseWriter, r *http.Request) {
+    mux.HandleFunc("/api/authorization/signin", func(w http.ResponseWriter, r *http.Request) {
         assertHttpMethod(t, r.Method, "POST")
         fmt.Fprint(w, `{"accessToken": null}"`)
     })
@@ -124,4 +132,25 @@ func TestGetTokenBadStatusCode(t *testing.T) {
 
     _, err := client.GetToken("roman", "sikr3t")
     assertError(t, err, ErrBadStatusCode)
+}
+
+func TestURLPathJoining(t *testing.T) {
+    tc := []struct{
+        baseURL string
+        path string
+        want string
+    } {
+        {"https://t.co", "api/foo", "https://t.co/api/foo"},
+        {"https://t.co", "/api/foo", "https://t.co/api/foo"},
+        {"https://t.co/api", "api/foo", "https://t.co/api/api/foo"},
+        {"https://t.co/api", "/api/foo", "https://t.co/api/api/foo"},
+        {"https://t.co/api/", "/api/foo", "https://t.co/api/api/foo"},
+    }
+    for _, tt := range tc {
+        t.Run(tt.want, func(t *testing.T) {
+            u, _ := url.Parse(tt.baseURL)
+            got, _ := joinPaths(u, tt.path)
+            assertStrings(t, got.String(), tt.want)
+        })
+    }
 }

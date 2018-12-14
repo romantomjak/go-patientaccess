@@ -6,6 +6,7 @@ import (
     "errors"
     "net/http"
     "net/url"
+    "strings"
     "time"
 )
 
@@ -64,13 +65,11 @@ func NewClient() *Client {
 }
 
 // Creates a new HTTP request with all necessary HTTP headers
-func (c *Client) NewRequest(method, path string, body interface{}) (*http.Request, error) {
-    rel, err := url.Parse(path)
+func (c *Client) NewRequest(method, apiPath string, body interface{}) (*http.Request, error) {
+    loc, err := joinPaths(c.BaseURL, apiPath)
     if err != nil {
         return nil, err
     }
-
-    loc := c.BaseURL.ResolveReference(rel)
 
     buf := new(bytes.Buffer)
     if body != nil {
@@ -123,4 +122,21 @@ func (c *Client) GetToken(username, password string) (token *AccessToken, err er
     }
     
     return &authResp.AccessToken, nil
+}
+
+func joinPaths(baseURL *url.URL, path string) (*url.URL, error) {
+    u, err := url.Parse(path)
+    if err != nil {
+        return nil, err
+    }
+
+    if !strings.HasSuffix(baseURL.Path, "/") {
+        baseURL.Path = baseURL.Path + "/"
+    }
+
+    if strings.HasPrefix(u.Path, "/") {
+        u.Path = u.Path[1:]
+    }
+
+    return baseURL.ResolveReference(u), nil
 }
