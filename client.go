@@ -16,6 +16,7 @@ const (
 
 var (
     ErrBadCredentials = errors.New("bad credentials")
+    ErrBadStatusCode = errors.New("bad HTTP status code")
 )
 
 // Client manages communication with Patient Access API
@@ -105,6 +106,10 @@ func (c *Client) GetToken(username, password string) (token *AccessToken, err er
     resp, err := c.client.Do(req)
     if err != nil {
         return nil, err
+    }
+
+    if resp.StatusCode < 200 || resp.StatusCode > 299 {
+        return nil, ErrBadStatusCode
     }
 
     var authResp AuthResponse

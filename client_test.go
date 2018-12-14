@@ -116,5 +116,12 @@ func TestGetTokenBadCredentials(t *testing.T) {
     _, err := client.GetToken("roman", "sikr3t")
 
     assertError(t, err, ErrBadCredentials)
-    }
+}
+
+func TestGetTokenBadStatusCode(t *testing.T) {
+    setup()
+    defer teardown()
+
+    _, err := client.GetToken("roman", "sikr3t")
+    assertError(t, err, ErrBadStatusCode)
 }
