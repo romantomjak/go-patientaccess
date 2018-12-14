@@ -178,7 +178,7 @@ func TestGetAppointments(t *testing.T) {
         },
     }
 
-    got, _ := client.GetAppointmentSlots(token)
+    got, _ := client.GetAppointmentSlots(token, patientId)
     assertEqual(t, got, want)
 }
 

@@ -141,13 +141,14 @@ func (c *Client) GetToken(username, password string) (*AccessToken, error) {
     return &authResp.AccessToken, nil
 }
 
-func (c *Client) GetAppointmentSlots(token string) ([]AppointmentSlot, error) {
+func (c *Client) GetAppointmentSlots(token, patientId string) ([]AppointmentSlot, error) {
     req, err := c.NewRequest("GET", "/Appointment/properties/hierarchy", nil)
     if err != nil {
         return nil, err
     }
 
     req.Header.Add("Authorization", "Bearer " + token)
+    req.Header.Add("x-patientid", patientId)
 
     resp, err := c.client.Do(req)
     if err != nil {
