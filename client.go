@@ -1,6 +1,7 @@
 package patientaccess
 
 import (
+    "bytes"
     "encoding/json"
     "errors"
     "net/http"
@@ -62,14 +63,23 @@ func NewClient() *Client {
 }
 
 // Creates a new HTTP request with all necessary HTTP headers
-func (c *Client) NewRequest(method, path string) (*http.Request, error) {
+func (c *Client) NewRequest(method, path string, body interface{}) (*http.Request, error) {
     rel, err := url.Parse(path)
     if err != nil {
         return nil, err
     }
 
     loc := c.BaseURL.ResolveReference(rel)
-    req, err := http.NewRequest(method, loc.String(), nil)
+
+    buf := new(bytes.Buffer)
+    if body != nil {
+        err = json.NewEncoder(buf).Encode(body)
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    req, err := http.NewRequest(method, loc.String(), buf)
     if err != nil {
         return nil, err
     }
@@ -82,7 +92,12 @@ func (c *Client) NewRequest(method, path string) (*http.Request, error) {
 
 // Obtains a new PA API access token
 func (c *Client) GetToken(username, password string) (token *AccessToken, err error) {
-    req, err := c.NewRequest("POST", "/authorization/signin")
+    form := map[string]string{
+        "username": username,
+        "password": password,
+    }
+
+    req, err := c.NewRequest("POST", "/authorization/signin", form)
     if err != nil {
         return nil, err
     }
