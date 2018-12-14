@@ -91,7 +91,6 @@ func (c *Client) GetToken(username, password string) (token *AccessToken, err er
     if err != nil {
         return nil, err
     }
-    defer resp.Body.Close()
 
     var authResp AuthResponse
     err = json.NewDecoder(resp.Body).Decode(&authResp)
