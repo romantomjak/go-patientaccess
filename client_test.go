@@ -44,6 +44,13 @@ func assertEquals(t *testing.T, got, want interface{}) {
     }
 }
 
+func assertError(t *testing.T, got, want error) {
+    t.Helper()
+    if got != want {
+        t.Errorf("got error '%s', want '%s'", got, want)
+    }
+}
+
 func TestAccessTokenExpiresIn(t *testing.T) {
     tokenExpiresIn := time.Now().Add(time.Minute * 5).Format("2006-01-02T15:04:05.999999Z")
     jsonBlob := fmt.Sprintf(`{"access_token": "28d5cf150df203a0002f48395e380dff", "expires_in": "%s"}`, tokenExpiresIn)
@@ -93,9 +100,8 @@ func TestGetTokenBadCredentials(t *testing.T) {
         fmt.Fprint(w, `{"accessToken": null}"`)
     })
 
-    want := ErrBadCredentials
-    _, got := client.GetToken("roman", "sikr3t")
-    if got != want {
-        t.Errorf("got '%+v', want '%+v'", got, want)
+    _, err := client.GetToken("roman", "sikr3t")
+
+    assertError(t, err, ErrBadCredentials)
     }
 }
