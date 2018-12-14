@@ -30,6 +30,13 @@ func teardown() {
     server.Close()
 }
 
+func assertHttpMethod(t *testing.T, got, want string) {
+    t.Helper()
+    if got != want {
+        t.Errorf("got %+v, want %+v", got, want)
+    }
+}
+
 func TestAccessTokenExpiresIn(t *testing.T) {
     tokenExpiresIn := time.Now().Add(time.Minute * 5).Format("2006-01-02T15:04:05.999999Z")
     jsonBlob := fmt.Sprintf(`{"access_token": "28d5cf150df203a0002f48395e380dff", "expires_in": "%s"}`, tokenExpiresIn)
@@ -58,6 +65,7 @@ func TestGetToken(t *testing.T) {
     jsonBlob := fmt.Sprintf(`{"accessToken": {"access_token": "28d5cf150df203a0002f48395e380dff", "expires_in": "%s"}}`, tokenExpiresIn)
 
     mux.HandleFunc("/authorization/signin", func(w http.ResponseWriter, r *http.Request) {
+        assertHttpMethod(t, r.Method, "POST")
         fmt.Fprint(w, jsonBlob)
     })
 
@@ -78,6 +86,7 @@ func TestGetTokenBadCredentials(t *testing.T) {
     defer teardown()
 
     mux.HandleFunc("/authorization/signin", func(w http.ResponseWriter, r *http.Request) {
+        assertHttpMethod(t, r.Method, "POST")
         fmt.Fprint(w, `{"accessToken": null}"`)
     })
 

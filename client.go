@@ -62,14 +62,14 @@ func NewClient() *Client {
 }
 
 // Creates a new HTTP request with all necessary HTTP headers
-func (c *Client) NewRequest(path string) (*http.Request, error) {
+func (c *Client) NewRequest(method, path string) (*http.Request, error) {
     rel, err := url.Parse(path)
     if err != nil {
         return nil, err
     }
 
     loc := c.BaseURL.ResolveReference(rel)
-    req, err := http.NewRequest("GET", loc.String(), nil)
+    req, err := http.NewRequest(method, loc.String(), nil)
     if err != nil {
         return nil, err
     }
@@ -82,7 +82,7 @@ func (c *Client) NewRequest(path string) (*http.Request, error) {
 
 // Obtains a new PA API access token
 func (c *Client) GetToken(username, password string) (token *AccessToken, err error) {
-    req, err := c.NewRequest("/authorization/signin")
+    req, err := c.NewRequest("POST", "/authorization/signin")
     if err != nil {
         return nil, err
     }
