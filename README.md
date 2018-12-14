@@ -13,19 +13,30 @@ import (
 )
 
 func main() {
-    client := patientacess.NewClient()
+    client := patientaccess.NewClient()
 
     token, err := client.GetToken("username", "password")
     if err != nil {
-        fmt.Errorf("Failed to obtain API token: %v", err)
+        fmt.Println("Failed to obtain API token: %v", err)
+        return
     }
 
-    appointments, err = client.GetAppointments(token)
+    patientId, err := client.GetPatientId(token.Token)
     if err != nil {
-        fmt.Errorf("Failed to list appointment types: %v", err)
+        fmt.Println("Failed to obtain patient ID: %v", err)
+        return
     }
 
-    fmt.Printf("Available appointment types: %+v", appointments)
+    slots, err := client.GetAppointmentSlots(token.Token, patientId)
+    if err != nil {
+        fmt.Println("Failed to list appointment types: %v", err)
+        return
+    }
+
+    fmt.Println("Available appointment types:")
+    for _, slot := range slots {
+        fmt.Printf(" - %s\n", slot.SlotType.Name)
+    }
 }
 ```
 
