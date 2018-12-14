@@ -58,6 +58,19 @@ type AuthResponse struct {
     AccessToken AccessToken `json:"accessToken"`
 }
 
+type SlotType struct {
+    Id string
+    Name string
+}
+
+type AppointmentSlot struct {
+    SlotType SlotType `json:"slotType"`
+}
+
+type AppointmentSlotResponse struct {
+    Slots []AppointmentSlot
+}
+
 // Returns a new Patient Access API client
 func NewClient() *Client {
     baseURL, _ := url.Parse(defaultBaseURL)
@@ -122,6 +135,32 @@ func (c *Client) GetToken(username, password string) (token *AccessToken, err er
     }
     
     return &authResp.AccessToken, nil
+}
+
+func (c *Client) GetAppointmentSlots(token string) (slots []AppointmentSlot, err error) {
+    req, err := c.NewRequest("GET", "/Appointment/properties/hierarchy", nil)
+    if err != nil {
+        return nil, err
+    }
+
+    req.Header.Add("Authorization", "Bearer " + token)
+
+    resp, err := c.client.Do(req)
+    if err != nil {
+        return nil, err
+    }
+
+    if resp.StatusCode < 200 || resp.StatusCode > 299 {
+        return nil, ErrBadStatusCode
+    }
+
+    var slotResp AppointmentSlotResponse
+    err = json.NewDecoder(resp.Body).Decode(&slotResp)
+    if err != nil {
+        return nil, err
+    }
+    
+    return slotResp.Slots, nil
 }
 
 func joinPaths(baseURL *url.URL, path string) (*url.URL, error) {

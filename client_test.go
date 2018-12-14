@@ -154,3 +154,30 @@ func TestURLPathJoining(t *testing.T) {
         })
     }
 }
+
+func TestGetAppointments(t *testing.T) {
+    setup()
+    defer teardown()
+
+    token := "28d5cf150df203a0002f48395e380dff"
+    patientId := "15d0b1d1-d046-46f6-ae46-7814782fd536"
+
+    mux.HandleFunc("/api/Appointment/properties/hierarchy", func(w http.ResponseWriter, r *http.Request) {
+        assertHttpMethod(t, r.Method, "GET")
+        assertStrings(t, r.Header.Get("Authorization"), fmt.Sprintf("Bearer %s", token))
+        assertStrings(t, r.Header.Get("X-PatientId"), patientId)
+        fmt.Fprint(w, `{"slots":[{"slotType":{"id":"Default","name":"General","status":1,"isDefault":true}},{"slotType":{"id":"BLOOD TEST","name":"BLOOD TEST","status":1,"isDefault":false}}]}`)
+    })
+
+    want := []AppointmentSlot{
+        AppointmentSlot{
+            SlotType{Id: "Default", Name: "General"},
+        },
+        AppointmentSlot{
+            SlotType{Id: "BLOOD TEST", Name: "BLOOD TEST"},
+        },
+    }
+
+    got, _ := client.GetAppointmentSlots(token)
+    assertEqual(t, got, want)
+}
