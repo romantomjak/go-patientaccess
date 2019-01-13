@@ -29,7 +29,7 @@ func main() {
 
     slots, err := client.GetAppointmentSlots(token.Token, patientId)
     if err != nil {
-        fmt.Println("Failed to list appointment types", err)
+        fmt.Println("Failed to list appointment types:", err)
         return
     }
 
