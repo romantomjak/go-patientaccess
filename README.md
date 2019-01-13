@@ -23,7 +23,7 @@ func main() {
 
     patientId, err := client.GetPatientId(token.Token)
     if err != nil {
-        fmt.Println("Failed to obtain patient ID", err)
+        fmt.Println("Failed to obtain patient ID:", err)
         return
     }
 
