@@ -1,6 +1,6 @@
 # go-patientaccess
 
-Barebones client for Patient Acccess API for monitoring my local clinics GP availability
+Barebones client for Patient Acccess API for monitoring my local clinic's GP availability
 
 ---
 
@@ -17,19 +17,19 @@ func main() {
 
     token, err := client.GetToken("username", "password")
     if err != nil {
-        fmt.Println("Failed to obtain API token: %v", err)
+        fmt.Println("Failed to obtain API token", err)
         return
     }
 
     patientId, err := client.GetPatientId(token.Token)
     if err != nil {
-        fmt.Println("Failed to obtain patient ID: %v", err)
+        fmt.Println("Failed to obtain patient ID", err)
         return
     }
 
     slots, err := client.GetAppointmentSlots(token.Token, patientId)
     if err != nil {
-        fmt.Println("Failed to list appointment types: %v", err)
+        fmt.Println("Failed to list appointment types", err)
         return
     }
 
