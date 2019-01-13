@@ -17,7 +17,7 @@ func main() {
 
     token, err := client.GetToken("username", "password")
     if err != nil {
-        fmt.Println("Failed to obtain API token", err)
+        fmt.Println("Failed to obtain API token:", err)
         return
     }
 
